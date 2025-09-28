@@ -1,79 +1,26 @@
 /** @type {import('next').NextConfig} */
-/* eslint-disable @typescript-eslint/no-var-requires */
-
 const nextConfig = {
-  output: 'standalone',
-  eslint: {
-    dirs: ['src'],
-  },
-
-  reactStrictMode: false,
-  swcMinify: false,
-
-  experimental: {
-    instrumentationHook: process.env.NODE_ENV === 'production',
-  },
-
-  // Uncoment to add domain whitelist
+  // 静态导出模式
+  output: 'export',
+  trailingSlash: true,
+  distDir: 'out',
+  
+  // 图片优化关闭
   images: {
     unoptimized: true,
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**',
-      },
-      {
-        protocol: 'http',
-        hostname: '**',
-      },
-    ],
   },
-
-  webpack(config) {
-    // Grab the existing rule that handles SVG imports
-    const fileLoaderRule = config.module.rules.find((rule) =>
-      rule.test?.test?.('.svg')
-    );
-
-    config.module.rules.push(
-      // Reapply the existing rule, but only for svg imports ending in ?url
-      {
-        ...fileLoaderRule,
-        test: /\.svg$/i,
-        resourceQuery: /url/, // *.svg?url
-      },
-      // Convert all other *.svg imports to React components
-      {
-        test: /\.svg$/i,
-        issuer: { not: /\.(css|scss|sass)$/ },
-        resourceQuery: { not: /url/ }, // exclude if *.svg?url
-        loader: '@svgr/webpack',
-        options: {
-          dimensions: false,
-          titleProp: true,
-        },
-      }
-    );
-
-    // Modify the file loader rule to ignore *.svg, since we have it handled now.
-    fileLoaderRule.exclude = /\.svg$/i;
-
-    config.resolve.fallback = {
-      ...config.resolve.fallback,
-      net: false,
-      tls: false,
-      crypto: false,
-    };
-
-    return config;
+  
+  // 环境变量
+  env: {
+    NEXT_PUBLIC_SITE_NAME: process.env.NEXT_PUBLIC_SITE_NAME || 'LunaTV',
   },
-};
+  
+  // 禁用服务器端功能（因为要静态导出）
+  experimental: {
+    images: {
+      unoptimized: true
+    }
+  }
+}
 
-const withPWA = require('next-pwa')({
-  dest: 'public',
-  disable: process.env.NODE_ENV === 'development',
-  register: true,
-  skipWaiting: true,
-});
-
-module.exports = withPWA(nextConfig);
+module.exports = nextConfig
